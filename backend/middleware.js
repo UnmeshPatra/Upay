@@ -1,3 +1,4 @@
+// This middleware ensures that only authenticated users with a valid token can access protected routes or perform specific actions in the application.
 const { JWT_SECRET } = require("./config");
 const jwt = require("jsonwebtoken");
 

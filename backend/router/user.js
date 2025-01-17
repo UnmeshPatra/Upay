@@ -13,10 +13,6 @@ const signupSchema = zod.object({
     firstName: zod.string(),
 });
 
-const signinSchema = zod.object({
-    username: zod.string(),
-    password: zod.string(),
-});
 
 // Signup route
 router.post("/signup", async (req, res) => {
@@ -30,29 +26,29 @@ router.post("/signup", async (req, res) => {
             });
         }
 
+        const existingUser = await User.findOne({ username: body.username });
         
-        const existingUser = await User.findOne({
-             username: body.username 
-            });
-
         if (existingUser) {
             return res.status(400).json({
-                message: "Email already taken",
+                message: "Username already taken",
             });
         }
 
-       
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(body.password, 10);
+        body.password = hashedPassword;
+        
         const dbUser = await User.create(body);
-        const token = jwt.sign({
-             userId: dbUser._id
-            },JWT_SECRET
+        const token = jwt.sign(
+            { userId: dbUser._id },
+            JWT_SECRET
         );
         res.status(201).json({
             message: "User created successfully",
             token: token,
         });
-
-
+        
+        
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -61,6 +57,14 @@ router.post("/signup", async (req, res) => {
     }
 });
 
+
+
+const signinSchema = zod.object({
+    username: zod.string(),
+    password: zod.string(),
+});
+
+// Sign-in route
 router.post("/signin", async (req, res) => {
     try {
 
@@ -68,86 +72,92 @@ router.post("/signin", async (req, res) => {
 
         const result = signinSchema.safeParse(body);
 
-        if(!result.success){
-            return res.json({
-                message:"Invalid input"
-            })
-
+        if (!result.success) {
+            return res.status(400).json({
+                message: "Invalid input",
+            });
         }
 
-        const user = User.findOne({
-            username:body.username
-        });
-        if (!user || user.password !== body.password) {
+        const user = await User.findOne({ username: body.username });
+        if (!user) {
+            return res.status(401).json({
+                message: "Invalid username or Invalid password or please signup.",
+            });
+        }
+
+        // Compare the provided password with the hashed password
+        const isPasswordValid = await bcrypt.compare(body.password, user.password);
+        if (!isPasswordValid) {
             return res.status(401).json({
                 message: "Invalid username or password.",
             });
         }
 
-        const token = jwt.sign({ 
-            userId: user._id 
-        },JWT_SECRET);
+        const token = jwt.sign(
+            { userId: user._id },
+            JWT_SECRET
+        );
 
         res.status(200).json({
             message: "Sign-in successful",
             token: token,
         });
-        
-    } catch(error){
+
+    } catch (error) {
         console.error(error);
         res.status(500).json({
-            message: "an error occur.please try again"
+            message: "An error occurred. Please try again.",
         });
     }
-
+    
 });
 
 const updateBody = zod.object({
-	password: zod.string().optional(),
+    password: zod.string().optional(),
     firstName: zod.string().optional(),
     lastName: zod.string().optional(),
-})
+});
 
 router.put("/", authMiddleware, async (req, res) => {
-    const { success } = updateBody.safeParse(req.body)
+    const { success } = updateBody.safeParse(req.body);
     if (!success) {
-        res.status(411).json({
-            message: "Error while updating information"
-        })
+        return res.status(400).json({
+            message: "Error while updating information",
+        });
     }
 
-    await User.updateOne(req.body, {
-        id: req.userId
-    })
+    const updateData = { ...req.body };
+
+    // Hash password if it is being updated
+    if (updateData.password) {
+        updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+
+    await User.updateOne(updateData, { id: req.userId });
 
     res.json({
-        message: "Updated successfully"
-    })
-})
+        message: "Updated successfully",
+    });
+});
 
 router.get("/bulk", async (req, res) => {
     const filter = req.query.filter || "";
 
     const users = await User.find({
-        $or: [{
-            firstName: {
-                "$regex": filter
-            }
-        }, {
-            lastName: {
-                "$regex": filter
-            }
-        }]
-    })
+        $or: [
+            { firstName: { $regex: filter } },
+            { lastName: { $regex: filter } },
+        ],
+    });
 
     res.json({
-        user: users.map(user => ({
+        user: users.map((user) => ({
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
-            _id: user._id
-        }))
-    })
-})
+            _id: user._id,
+        })),
+    });
+});
 
 module.exports = router;
