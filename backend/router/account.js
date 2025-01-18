@@ -3,14 +3,26 @@ const { authMiddleware } = require('../middleware');
 const { Account } = require('../db');
 
 const router = express.Router();
-
-router.get("/balance" , authMiddleware,async(req,res)=>{
-    const account = await Account.findOne({
-        userId: req.userId
-    });
-    res.json({
-        balance: account.balance
-    })
+router.get("/balance", authMiddleware, async (req, res) => {
+    try {
+        const account = await Account.findOne({
+            userId: req.userId // Use userId from the token
+        });
+        
+        if (!account) {
+            return res.status(404).json({
+                message: "Account not found."
+            });
+        }
+        
+        res.json({
+            balance: account.balance
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "An error occurred while fetching balance.",
+        });
+    }
 });
 
 router.post("/transfer", authMiddleware, async (req, res) => {

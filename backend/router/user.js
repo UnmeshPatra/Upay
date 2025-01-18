@@ -12,6 +12,7 @@ const signupSchema = zod.object({
     username: zod.string(),
     password: zod.string(),
     firstName: zod.string(),
+    lastName: zod.string(),
 });
 
 
@@ -119,7 +120,7 @@ const updateBody = zod.object({
     lastName: zod.string().optional(),
 });
 
-router.put("/", authMiddleware, async (req, res) => {
+router.put("/updatebody", authMiddleware, async (req, res) => {
     const { success } = updateBody.safeParse(req.body);
     if (!success) {
         return res.status(400).json({

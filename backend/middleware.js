@@ -15,6 +15,8 @@ const authMiddleware = (req, res, next) => {
         // Verify the token using the secret
         const decoded = jwt.verify(token, JWT_SECRET);
         req.userId = decoded.userId; // Attach decoded user information to the request
+        console.log('User ID from token:', req.userId); // Log the userId to verify
+
         next(); // Proceed to the next middleware
     } catch (err) {
         return res.status(403).json({ message: "Forbidden: Invalid or expired token." });
@@ -24,3 +26,24 @@ const authMiddleware = (req, res, next) => {
 module.exports = {
     authMiddleware,
 };
+
+
+// const jwt = require('jsonwebtoken');
+// const { JWT_SECRET } = require('../config');
+
+// const authMiddleware = (req, res, next) => {
+//     const token = req.header('Authorization')?.replace('Bearer ', ''); // Extract token from header
+//     if (!token) {
+//         return res.status(401).json({ message: "No token provided, authorization denied." });
+//     }
+
+//     try {
+//         const decoded = jwt.verify(token, JWT_SECRET); // Verify the token
+//         req.userId = decoded.userId; // Attach userId to the request object
+//         next(); // Pass control to the next handler
+//     } catch (err) {
+//         return res.status(401).json({ message: "Invalid or expired token." });
+//     }
+// };
+
+// module.exports = { authMiddleware };
