@@ -130,6 +130,16 @@
 
 
 const mongoose = require("mongoose");
+const { MONGO_URI } = require("./config");
+
+// Connect to MongoDB
+mongoose.connect(MONGO_URI)
+    .then(() => {
+        console.log("MongoDB connected");
+    })
+    .catch((err) => {
+        console.error("MongoDB connection error:", err);
+    });
 
 // Create a Schema for Users
 const userSchema = new mongoose.Schema({
@@ -169,7 +179,7 @@ const accountSchema = new mongoose.Schema({
     required: true
   },
   balance:{
-    type: number,
+    type: Number,
     required:true
   }
 }); 

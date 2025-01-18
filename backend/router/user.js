@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const { User } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
+const { authMiddleware } = require("../middleware");
 const router = express.Router();
 
 // Define the signup schema
