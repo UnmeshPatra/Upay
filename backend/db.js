@@ -174,9 +174,9 @@ const userSchema = new mongoose.Schema({
 //acounts schemal (all the balences of the user stores here)
 const accountSchema = new mongoose.Schema({
   userId:{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    type: String, // Ensure this matches the token's format
+    required: true,
+    unique: true
   },
   balance:{
     type: Number,

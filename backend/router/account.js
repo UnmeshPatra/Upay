@@ -5,25 +5,29 @@ const { Account } = require('../db');
 const router = express.Router();
 router.get("/balance", authMiddleware, async (req, res) => {
     try {
-        const account = await Account.findOne({
-            userId: req.userId // Use userId from the token
-        });
-        
+        console.log("User ID from token:", req.userId); // Log userId from middleware
+
+        const account = await Account.findOne({ userId: req.userId });
+
+        console.log("Account fetched:", account); // Log the result from the query
+
         if (!account) {
             return res.status(404).json({
                 message: "Account not found."
             });
         }
-        
+
         res.json({
             balance: account.balance
         });
     } catch (err) {
+        console.error("Error fetching account:", err);
         res.status(500).json({
             message: "An error occurred while fetching balance.",
         });
     }
 });
+
 
 router.post("/transfer", authMiddleware, async (req, res) => {
     const session = await mongoose.startSession();
