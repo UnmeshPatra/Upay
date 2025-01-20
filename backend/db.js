@@ -174,13 +174,15 @@ const userSchema = new mongoose.Schema({
 //acounts schemal (all the balences of the user stores here)
 const accountSchema = new mongoose.Schema({
   userId:{
-    type: String, // Ensure this matches the token's format
+    type: mongoose.Schema.Types.ObjectId, // Ensure this matches the token's format
     required: true,
-    unique: true
+    unique: true,
+    ref: "User", 
   },
   balance:{
     type: Number,
-    required:true
+    required:true,
+    default: 0, 
   }
 }); 
 
