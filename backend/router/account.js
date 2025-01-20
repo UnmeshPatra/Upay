@@ -7,7 +7,7 @@ router.get("/balance", authMiddleware, async (req, res) => {
     try {
         console.log("User ID from token:", req.userId); // Log userId from middleware
 
-        const account = await Account.findOne({ userId: req.userId });
+        const account = await Account.findOne({ userId: mongoose.Types.ObjectId(req.userId)  });
 
         console.log("Account fetched:", account); // Log the result from the query
 
